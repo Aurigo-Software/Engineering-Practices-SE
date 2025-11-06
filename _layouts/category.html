@@ -1,0 +1,377 @@
+---
+layout: default
+---
+
+<div class="category-page">
+  <header class="category-header">
+    <div class="category-icon">
+      {%- assign category_key = page.url | remove_first: '/' | remove_last: '/' | replace: '/', '-' -%}
+      {%- assign category_meta = site.data.navigation.categories[category_key] -%}
+      {%- if category_meta.icon -%}
+      <div class="icon" style="background-color: {{ category_meta.color | default: '#e3f2fd' }}">
+        <svg width="32" height="32" viewBox="0 0 24 24" class="category-icon-svg">
+          <use href="#icon-{{ category_meta.icon }}"></use>
+        </svg>
+      </div>
+      {%- endif -%}
+    </div>
+    
+    <div class="category-info">
+      <h1 class="category-title">{{ page.title | default: category_meta.title }}</h1>
+      {%- if page.description or category_meta.description -%}
+      <p class="category-description">{{ page.description | default: category_meta.description }}</p>
+      {%- endif -%}
+      
+      {%- if page.category or page.last_updated -%}
+      <div class="category-meta">
+        {%- if page.category -%}
+        <span class="meta-item">
+          <svg class="icon" width="16" height="16" viewBox="0 0 16 16">
+            <path d="M1.75 2.5a.25.25 0 00-.25.25v2.5c0 .138.112.25.25.25h2.5a.25.25 0 00.25-.25v-2.5a.25.25 0 00-.25-.25h-2.5z"></path>
+          </svg>
+          {{ page.category }}
+        </span>
+        {%- endif -%}
+        
+        {%- if page.last_updated -%}
+        <span class="meta-item">
+          <svg class="icon" width="16" height="16" viewBox="0 0 16 16">
+            <path d="M8 16A8 8 0 1 1 8 0a8 8 0 0 1 0 16zm.5-4.75a.75.75 0 0 0-1.5 0V8.5h-2.25a.75.75 0 0 0 0 1.5h3a.75.75 0 0 0 .75-.75v-3.25z"></path>
+          </svg>
+          Updated: {{ page.last_updated | date: "%B %d, %Y" }}
+        </span>
+        {%- endif -%}
+      </div>
+      {%- endif -%}
+    </div>
+  </header>
+
+  <div class="category-content">
+    {{ content }}
+  </div>
+
+  {%- comment -%}
+  Auto-generate subcategory links if not explicitly provided in content
+  {%- endcomment -%}
+  {%- assign current_dir = page.dir -%}
+  {%- assign subcategories = site.pages | where_exp: "p", "p.dir contains current_dir" | where_exp: "p", "p.dir != current_dir" | group_by: "dir" -%}
+  
+  {%- if subcategories.size > 0 -%}
+  <section class="subcategories">
+    <h2>Practice Areas</h2>
+    <div class="subcategory-grid">
+      {%- for group in subcategories limit: 8 -%}
+        {%- assign subcat_page = group.items | where: "name", "README.md" | first -%}
+        {%- if subcat_page -%}
+        <div class="subcategory-card">
+          <div class="card-header">
+            <h3><a href="{{ subcat_page.url | relative_url }}">{{ subcat_page.title | default: group.name }}</a></h3>
+            {%- if subcat_page.description -%}
+            <p class="card-description">{{ subcat_page.description | truncate: 120 }}</p>
+            {%- endif -%}
+          </div>
+          
+          {%- assign subcat_files = group.items | where_exp: "p", "p.name != 'README.md'" -%}
+          {%- if subcat_files.size > 0 -%}
+          <div class="card-links">
+            {%- for file in subcat_files limit: 3 -%}
+            <a href="{{ file.url | relative_url }}" class="card-link">{{ file.title | default: file.name | remove: '.md' | replace: '-', ' ' | capitalize }}</a>
+            {%- endfor -%}
+            {%- if subcat_files.size > 3 -%}
+            <span class="more-links">+{{ subcat_files.size | minus: 3 }} more</span>
+            {%- endif -%}
+          </div>
+          {%- endif -%}
+        </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </section>
+  {%- endif -%}
+
+  {%- comment -%}
+  Show learning path or maturity indicators if present
+  {%- endcomment -%}
+  {%- if page.learning_path or page.maturity_indicators -%}
+  <section class="category-extras">
+    {%- if page.learning_path -%}
+    <div class="learning-path">
+      <h2>Learning Path</h2>
+      <div class="path-visualization">
+        <!-- Learning path content would be rendered here -->
+        {{ page.learning_path }}
+      </div>
+    </div>
+    {%- endif -%}
+    
+    {%- if page.maturity_indicators -%}
+    <div class="maturity-indicators">
+      <h2>Maturity Levels</h2>
+      {{ page.maturity_indicators }}
+    </div>
+    {%- endif -%}
+  </section>
+  {%- endif -%}
+
+  {%- comment -%}
+  Show quick access resources
+  {%- endcomment -%}
+  {%- assign category_quick_access = site.data.navigation.quick_access | where_exp: "item", "item.url contains current_dir" -%}
+  {%- if category_quick_access.size > 0 -%}
+  <section class="quick-access">
+    <h2>Quick Access</h2>
+    <div class="quick-access-grid">
+      {%- for item in category_quick_access -%}
+      <a href="{{ item.url | relative_url }}" class="quick-access-item frequency-{{ item.frequency }}">
+        <strong>{{ item.title }}</strong>
+        <span class="frequency">{{ item.frequency | replace: '-', ' ' | capitalize }}</span>
+      </a>
+      {%- endfor -%}
+    </div>
+  </section>
+  {%- endif -%}
+</div>
+
+<style>
+.category-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.category-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 0.5rem;
+  border-left: 4px solid #3498db;
+}
+
+.category-icon .icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.category-icon-svg {
+  color: #2c3e50;
+}
+
+.category-info {
+  flex: 1;
+}
+
+.category-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+}
+
+.category-description {
+  font-size: 1.2rem;
+  color: #6c757d;
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
+}
+
+.category-meta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  color: #6c757d;
+  background-color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid #dee2e6;
+}
+
+.category-content {
+  margin-bottom: 3rem;
+  line-height: 1.7;
+}
+
+.subcategories {
+  margin-bottom: 3rem;
+}
+
+.subcategories h2 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 0.5rem;
+}
+
+.subcategory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.subcategory-card {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.subcategory-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.card-header h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.3rem;
+}
+
+.card-header h3 a {
+  color: #2c3e50;
+  text-decoration: none;
+}
+
+.card-header h3 a:hover {
+  color: #3498db;
+}
+
+.card-description {
+  color: #6c757d;
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.card-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.card-link {
+  font-size: 0.9rem;
+  color: #3498db;
+  text-decoration: none;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid transparent;
+}
+
+.card-link:hover {
+  border-bottom-color: #3498db;
+}
+
+.more-links {
+  font-size: 0.8rem;
+  color: #6c757d;
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+
+.quick-access {
+  margin-bottom: 3rem;
+}
+
+.quick-access h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.quick-access-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.quick-access-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  text-decoration: none;
+  color: #2c3e50;
+  transition: all 0.2s ease;
+}
+
+.quick-access-item:hover {
+  background-color: #f8f9fa;
+  transform: translateX(4px);
+}
+
+.quick-access-item.frequency-daily {
+  border-left: 4px solid #28a745;
+}
+
+.quick-access-item.frequency-weekly {
+  border-left: 4px solid #ffc107;
+}
+
+.quick-access-item.frequency-as-needed {
+  border-left: 4px solid #dc3545;
+}
+
+.frequency {
+  font-size: 0.8rem;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.category-extras {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.learning-path,
+.maturity-indicators {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+}
+
+.learning-path h2,
+.maturity-indicators h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.3rem;
+  color: #2c3e50;
+}
+
+@media (max-width: 768px) {
+  .category-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .category-title {
+    font-size: 2rem;
+  }
+  
+  .subcategory-grid,
+  .quick-access-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .category-extras {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

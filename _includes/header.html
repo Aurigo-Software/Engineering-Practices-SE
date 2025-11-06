@@ -1,0 +1,442 @@
+<header class="site-header" role="banner">
+  <div class="wrapper">
+    <div class="site-header-content">
+      <div class="site-branding">
+        <a class="site-title" rel="author" href="{{ "/" | relative_url }}">
+          {%- if site.logo -%}
+          <img src="{{ site.logo | relative_url }}" alt="{{ site.title }}" class="site-logo">
+          {%- endif -%}
+          <span class="site-title-text">{{ site.title | escape }}</span>
+        </a>
+        
+        {%- if site.description -%}
+        <p class="site-description">{{ site.description | escape }}</p>
+        {%- endif -%}
+      </div>
+
+      <nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger" class="nav-trigger-label">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger">
+          {%- for item in site.data.navigation.main -%}
+          {%- if item.dropdown -%}
+          <div class="nav-dropdown">
+            <button class="nav-link dropdown-trigger" aria-expanded="false">
+              {{ item.title }}
+              <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12">
+                <path d="M6 8L2 4h8z"/>
+              </svg>
+            </button>
+            <div class="dropdown-content">
+              {%- for subitem in item.sublinks -%}
+              <a class="dropdown-link" href="{{ subitem.url | relative_url }}">
+                <div class="dropdown-item">
+                  <strong>{{ subitem.title }}</strong>
+                  {%- if subitem.description -%}
+                  <p>{{ subitem.description }}</p>
+                  {%- endif -%}
+                </div>
+              </a>
+              {%- endfor -%}
+            </div>
+          </div>
+          {%- else -%}
+          <a class="nav-link" href="{{ item.url | relative_url }}">{{ item.title }}</a>
+          {%- endif -%}
+          {%- endfor -%}
+          
+          <div class="nav-search">
+            <input type="search" id="search-input" placeholder="Search handbook..." />
+            <button type="button" id="search-button" aria-label="Search">
+              <svg width="16" height="16" viewBox="0 0 16 16">
+                <path d="M11.5 6.5a5 5 0 11-10 0 5 5 0 0110 0zm-.5 4.5a6 6 0 10-1.5 1.5L15 16.5 16.5 15l-5.5-4z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </div>
+  
+  {%- if page.url != "/" -%}
+  <div class="page-context-bar">
+    <div class="wrapper">
+      <div class="context-info">
+        {%- if page.category -%}
+        <span class="context-category">{{ page.category }}</span>
+        {%- endif -%}
+        {%- if page.title and page.title != site.title -%}
+        <span class="context-separator">|</span>
+        <span class="context-title">{{ page.title }}</span>
+        {%- endif -%}
+      </div>
+      
+      <div class="context-actions">
+        {%- if site.github.edit_page and page.path -%}
+        <a href="{{ site.github.repository_url }}/edit/main/{{ page.path }}" class="context-action" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 16 16">
+            <path d="M11.013 1.427a1.75 1.75 0 012.474 0l1.086 1.086a1.75 1.75 0 010 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 01-.927-.928l.929-3.25a1.75 1.75 0 01.445-.758l8.61-8.61z"/>
+          </svg>
+          Edit
+        </a>
+        {%- endif -%}
+        
+        {%- if site.github.issues_url -%}
+        <a href="{{ site.github.issues_url }}/new?title=Issue with {{ page.title | default: page.path }}&body=Page: {{ site.url }}{{ page.url }}" class="context-action" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 16 16">
+            <path d="M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 01-1.484.211c-.04-.282-.163-.547-.37-.847a8.695 8.695 0 00-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.75.75 0 01-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75zM6 15.25a.75.75 0 01.75-.75h2.5a.75.75 0 010 1.5h-2.5a.75.75 0 01-.75-.75zM8 11a1 1 0 100-2 1 1 0 000 2z"/>
+          </svg>
+          Report Issue
+        </a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+  {%- endif -%}
+</header>
+
+<style>
+.site-header {
+  border-top: 5px solid #3498db;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.site-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+}
+
+.site-branding {
+  flex-shrink: 0;
+}
+
+.site-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.site-logo {
+  height: 40px;
+  width: auto;
+}
+
+.site-title-text {
+  white-space: nowrap;
+}
+
+.site-description {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.9rem;
+  color: #6c757d;
+  max-width: 400px;
+}
+
+.site-nav {
+  position: relative;
+}
+
+.nav-trigger {
+  display: none;
+}
+
+.nav-trigger-label {
+  display: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.menu-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.menu-icon svg {
+  fill: #2c3e50;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-link {
+  color: #2c3e50;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.nav-link:hover {
+  background-color: #f8f9fa;
+  color: #3498db;
+}
+
+.nav-dropdown {
+  position: relative;
+}
+
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.dropdown-arrow {
+  transition: transform 0.2s ease;
+}
+
+.nav-dropdown:hover .dropdown-arrow,
+.dropdown-trigger[aria-expanded="true"] .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.dropdown-content {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  min-width: 300px;
+  max-width: 400px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: all 0.2s ease;
+  z-index: 1001;
+}
+
+.nav-dropdown:hover .dropdown-content {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-link {
+  display: block;
+  padding: 1rem;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.dropdown-link:hover {
+  background-color: #f8f9fa;
+}
+
+.dropdown-link:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item strong {
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.dropdown-item p {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.85rem;
+  color: #6c757d;
+  line-height: 1.4;
+}
+
+.nav-search {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+#search-input {
+  padding: 0.5rem 2.5rem 0.5rem 0.75rem;
+  border: 1px solid #dee2e6;
+  border-radius: 1.5rem;
+  font-size: 0.9rem;
+  width: 200px;
+  transition: all 0.2s ease;
+}
+
+#search-input:focus {
+  outline: none;
+  border-color: #3498db;
+  width: 250px;
+}
+
+#search-button {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#search-button:hover {
+  background-color: #f8f9fa;
+}
+
+#search-button svg {
+  fill: #6c757d;
+}
+
+.page-context-bar {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  padding: 0.5rem 0;
+}
+
+.page-context-bar .wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.context-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.context-category {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+}
+
+.context-separator {
+  color: #6c757d;
+}
+
+.context-title {
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.context-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.context-action {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #6c757d;
+  text-decoration: none;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.context-action:hover {
+  color: #3498db;
+  background-color: white;
+}
+
+.context-action svg {
+  fill: currentColor;
+}
+
+@media (max-width: 768px) {
+  .site-header-content {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .nav-trigger-label {
+    display: block;
+  }
+  
+  .trigger {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100vh;
+    background-color: white;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 4rem 2rem 2rem 2rem;
+    transition: left 0.3s ease;
+    z-index: 999;
+  }
+  
+  .nav-trigger:checked ~ .trigger {
+    left: 0;
+  }
+  
+  .nav-link {
+    padding: 1rem;
+    border-bottom: 1px solid #f8f9fa;
+  }
+  
+  .dropdown-content {
+    position: static;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    box-shadow: none;
+    border: none;
+    background: #f8f9fa;
+    margin-left: 1rem;
+    max-width: none;
+  }
+  
+  #search-input {
+    width: 100%;
+  }
+  
+  #search-input:focus {
+    width: 100%;
+  }
+  
+  .page-context-bar .wrapper {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+  
+  .site-description {
+    max-width: none;
+  }
+  
+  .site-title {
+    font-size: 1.25rem;
+  }
+}
+</style>

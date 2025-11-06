@@ -1,0 +1,225 @@
+# Site settings
+title: Engineering Practices & Standards Handbook
+description: >-
+  Comprehensive Engineering Practices & Standards Handbook serving as the 
+  central knowledge hub for engineering best practices, standards, and 
+  guidelines across all aspects of software development and delivery.
+
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "https://your-org.github.io" # the base hostname & protocol for your site
+repository: your-org/Engineering-Practices-SE
+
+# Site metadata
+author:
+  name: Engineering Team
+  email: engineering@yourcompany.com
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+# Permalink structure
+permalink: /:categories/:title/
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+  - jekyll-relative-links
+  - jekyll-optional-front-matter
+  - jekyll-readme-index
+  - jekyll-titles-from-headings
+
+# Jekyll settings
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    css_class: 'highlight'
+    span:
+      line_numbers: false
+    block:
+      line_numbers: true
+
+# Collections
+collections:
+  development_practices:
+    output: true
+    permalink: /:collection/:name/
+  architecture_design:
+    output: true
+    permalink: /:collection/:name/
+  quality_assurance:
+    output: true
+    permalink: /:collection/:name/
+  devops_infrastructure:
+    output: true
+    permalink: /:collection/:name/
+  security_practices:
+    output: true
+    permalink: /:collection/:name/
+  team_processes:
+    output: true
+    permalink: /:collection/:name/
+  standards_guidelines:
+    output: true
+    permalink: /:collection/:name/
+  tools_technologies:
+    output: true
+    permalink: /:collection/:name/
+  reference_materials:
+    output: true
+    permalink: /:collection/:name/
+
+# Default values for posts and pages
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "page"
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+  - scope:
+      path: "01-development-practices"
+    values:
+      category: "Development Practices"
+      layout: "page"
+  - scope:
+      path: "02-architecture-design"
+    values:
+      category: "Architecture & Design"
+      layout: "page"
+  - scope:
+      path: "03-quality-assurance"
+    values:
+      category: "Quality Assurance"
+      layout: "page"
+  - scope:
+      path: "04-devops-infrastructure"
+    values:
+      category: "DevOps & Infrastructure"
+      layout: "page"
+  - scope:
+      path: "05-security-practices"
+    values:
+      category: "Security Practices"
+      layout: "page"
+  - scope:
+      path: "06-team-processes"
+    values:
+      category: "Team Processes"
+      layout: "page"
+  - scope:
+      path: "07-standards-guidelines"
+    values:
+      category: "Standards & Guidelines"
+      layout: "page"
+  - scope:
+      path: "08-tools-technologies"
+    values:
+      category: "Tools & Technologies"
+      layout: "page"
+  - scope:
+      path: "09-reference-materials"
+    values:
+      category: "Reference Materials"
+      layout: "page"
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - .sass-cache/
+  - .jekyll-cache/
+  - gemfiles/
+  - package.json
+  - package-lock.json
+  - webpack.config.js
+
+# Include files
+include:
+  - _pages
+  - assets
+
+# Site navigation
+navigation:
+  - title: Home
+    url: /
+  - title: Quick Start
+    url: /navigation/
+  - title: Practice Areas
+    sublinks:
+      - title: Development Practices
+        url: /01-development-practices/
+      - title: Architecture & Design
+        url: /02-architecture-design/
+      - title: Quality Assurance
+        url: /03-quality-assurance/
+      - title: DevOps & Infrastructure
+        url: /04-devops-infrastructure/
+      - title: Security Practices
+        url: /05-security-practices/
+      - title: Team Processes
+        url: /06-team-processes/
+      - title: Standards & Guidelines
+        url: /07-standards-guidelines/
+      - title: Tools & Technologies
+        url: /08-tools-technologies/
+      - title: Reference Materials
+        url: /09-reference-materials/
+  - title: Resources
+    sublinks:
+      - title: Tags Index
+        url: /tags-index/
+      - title: Dependencies
+        url: /practice-dependencies/
+      - title: Contributing
+        url: /contributing/
+  - title: Search
+    url: /search/
+
+# Social and contact
+github:
+  repository_url: https://github.com/your-org/Engineering-Practices-SE
+  issues_url: https://github.com/your-org/Engineering-Practices-SE/issues
+  edit_page: true
+
+# SEO settings
+logo: /assets/images/logo.png
+twitter:
+  username: your-company
+linkedin:
+  username: your-company
+
+# Analytics (optional)
+google_analytics: # Add your GA tracking ID here
+
+# Search configuration
+search:
+  enabled: true
+  collections:
+    - pages
+    - development_practices
+    - architecture_design
+    - quality_assurance
+    - devops_infrastructure
+    - security_practices
+    - team_processes
+    - standards_guidelines
+    - tools_technologies
+    - reference_materials
+
+# Mermaid diagram support
+mermaid:
+  src: 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js'

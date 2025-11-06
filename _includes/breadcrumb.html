@@ -1,0 +1,325 @@
+{%- assign crumbs = page.url | remove:'/index.html' | split: '/' -%}
+{%- if crumbs.size > 1 -%}
+<nav class="breadcrumb" aria-label="Breadcrumb navigation">
+  <ol class="breadcrumb-list">
+    <li class="breadcrumb-item">
+      <a href="{{ '/' | relative_url }}" class="breadcrumb-link">
+        <svg class="breadcrumb-icon" width="14" height="14" viewBox="0 0 16 16">
+          <path d="m8 6.982-4.568-4.568a.75.75 0 0 0-1.06 1.06L6.94 8.04l-4.568 4.568a.75.75 0 1 0 1.06 1.06L8 9.1l4.568 4.568a.75.75 0 1 0 1.06-1.06L9.06 8.04l4.568-4.568a.75.75 0 1 0-1.06-1.06L8 6.982z"/>
+        </svg>
+        Home
+      </a>
+    </li>
+    
+    {%- assign crumb_path = '' -%}
+    {%- for crumb in crumbs -%}
+    {%- unless forloop.first -%}
+    {%- assign crumb_path = crumb_path | append: '/' | append: crumb -%}
+    {%- assign crumb_title = crumb | replace: '-', ' ' | capitalize -%}
+    
+    {%- comment -%} Try to find the actual page title {%- endcomment -%}
+    {%- assign crumb_url = crumb_path | append: '/' -%}
+    {%- assign crumb_page = site.pages | where: "url", crumb_url | first -%}
+    {%- unless crumb_page -%}
+    {%- assign crumb_url = crumb_path | append: '/index.html' -%}
+    {%- assign crumb_page = site.pages | where: "url", crumb_url | first -%}
+    {%- endunless -%}
+    
+    {%- if crumb_page and crumb_page.title -%}
+    {%- assign crumb_title = crumb_page.title -%}
+    {%- endif -%}
+    
+    {%- comment -%} Special handling for numbered directories {%- endcomment -%}
+    {%- if crumb contains '01-development-practices' -%}
+    {%- assign crumb_title = 'Development Practices' -%}
+    {%- elsif crumb contains '02-architecture-design' -%}
+    {%- assign crumb_title = 'Architecture & Design' -%}
+    {%- elsif crumb contains '03-quality-assurance' -%}
+    {%- assign crumb_title = 'Quality Assurance' -%}
+    {%- elsif crumb contains '04-devops-infrastructure' -%}
+    {%- assign crumb_title = 'DevOps & Infrastructure' -%}
+    {%- elsif crumb contains '05-security-practices' -%}
+    {%- assign crumb_title = 'Security Practices' -%}
+    {%- elsif crumb contains '06-team-processes' -%}
+    {%- assign crumb_title = 'Team Processes' -%}
+    {%- elsif crumb contains '07-standards-guidelines' -%}
+    {%- assign crumb_title = 'Standards & Guidelines' -%}
+    {%- elsif crumb contains '08-tools-technologies' -%}
+    {%- assign crumb_title = 'Tools & Technologies' -%}
+    {%- elsif crumb contains '09-reference-materials' -%}
+    {%- assign crumb_title = 'Reference Materials' -%}
+    {%- endif -%}
+    
+    <li class="breadcrumb-separator" aria-hidden="true">
+      <svg class="separator-icon" width="12" height="12" viewBox="0 0 16 16">
+        <path d="M6.22 3.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 010-1.06z"/>
+      </svg>
+    </li>
+    
+    <li class="breadcrumb-item {%- if forloop.last -%} current{%- endif -%}">
+      {%- if forloop.last -%}
+      <span class="breadcrumb-current" aria-current="page">{{ page.title | default: crumb_title }}</span>
+      {%- else -%}
+      <a href="{{ crumb_path | append: '/' | relative_url }}" class="breadcrumb-link">{{ crumb_title }}</a>
+      {%- endif -%}
+    </li>
+    {%- endunless -%}
+    {%- endfor -%}
+  </ol>
+  
+  {%- comment -%} Show category context if available {%- endcomment -%}
+  {%- if page.category or page.tags -%}
+  <div class="breadcrumb-meta">
+    {%- if page.category -%}
+    <span class="breadcrumb-category">
+      <svg class="meta-icon" width="12" height="12" viewBox="0 0 16 16">
+        <path d="M1.75 2.5a.25.25 0 00-.25.25v2.5c0 .138.112.25.25.25h2.5a.25.25 0 00.25-.25v-2.5a.25.25 0 00-.25-.25h-2.5z"/>
+      </svg>
+      {{ page.category }}
+    </span>
+    {%- endif -%}
+    
+    {%- if page.tags and page.tags.size > 0 -%}
+    <div class="breadcrumb-tags">
+      <svg class="meta-icon" width="12" height="12" viewBox="0 0 16 16">
+        <path d="M2.5 7.775V2.75a.25.25 0 01.25-.25h5.025a.25.25 0 01.177.073l6.25 6.25a.25.25 0 010 .354l-5.025 5.025a.25.25 0 01-.354 0l-6.25-6.25a.25.25 0 01-.073-.177z"/>
+      </svg>
+      {%- for tag in page.tags limit: 3 -%}
+      <span class="breadcrumb-tag">{{ tag }}</span>
+      {%- unless forloop.last -%}, {%- endunless -%}
+      {%- endfor -%}
+      {%- if page.tags.size > 3 -%}
+      <span class="tag-more">+{{ page.tags.size | minus: 3 }}</span>
+      {%- endif -%}
+    </div>
+    {%- endif -%}
+  </div>
+  {%- endif -%}
+</nav>
+
+<style>
+.breadcrumb {
+  margin-bottom: 2rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.breadcrumb-list {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb-link {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #6c757d;
+  text-decoration: none;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.breadcrumb-link:hover {
+  color: #3498db;
+  background-color: #f8f9fa;
+}
+
+.breadcrumb-icon,
+.separator-icon,
+.meta-icon {
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+.breadcrumb-separator {
+  display: flex;
+  align-items: center;
+  color: #adb5bd;
+  margin: 0 0.25rem;
+}
+
+.breadcrumb-current {
+  color: #2c3e50;
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.breadcrumb-item.current {
+  background-color: #e3f2fd;
+  border-radius: 0.25rem;
+}
+
+.breadcrumb-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f8f9fa;
+  flex-wrap: wrap;
+}
+
+.breadcrumb-category {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #1976d2;
+  background-color: #e3f2fd;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+}
+
+.breadcrumb-tags {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+.breadcrumb-tag {
+  background-color: #f8f9fa;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.2rem;
+  border: 1px solid #e9ecef;
+  font-weight: 400;
+}
+
+.tag-more {
+  color: #6c757d;
+  font-style: italic;
+  margin-left: 0.25rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .breadcrumb-list {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .breadcrumb-separator {
+    display: none;
+  }
+  
+  .breadcrumb-item {
+    position: relative;
+    padding-left: 1rem;
+  }
+  
+  .breadcrumb-item:not(:first-child):before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid #6c757d;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+  }
+  
+  .breadcrumb-item:first-child {
+    padding-left: 0;
+  }
+  
+  .breadcrumb-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .breadcrumb {
+    border-bottom: 1px solid #000;
+    margin-bottom: 1rem;
+  }
+  
+  .breadcrumb-link,
+  .breadcrumb-current {
+    color: #000 !important;
+  }
+  
+  .breadcrumb-meta {
+    display: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .breadcrumb-link {
+    color: #000;
+  }
+  
+  .breadcrumb-link:hover {
+    background-color: #000;
+    color: #fff;
+  }
+  
+  .breadcrumb-current {
+    color: #000;
+  }
+  
+  .breadcrumb-separator {
+    color: #000;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .breadcrumb-link {
+    transition: none;
+  }
+}
+
+/* Focus styles for accessibility */
+.breadcrumb-link:focus {
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+}
+
+.breadcrumb-link:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Skip link for screen readers */
+.breadcrumb-skip {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.breadcrumb-skip:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  background-color: #3498db;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  text-decoration: none;
+}
+</style>
+{%- endif -%}

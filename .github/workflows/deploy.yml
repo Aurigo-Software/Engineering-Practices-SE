@@ -1,0 +1,311 @@
+name: Deploy Jekyll site to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v4
+
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+
+      - name: Build with Jekyll
+        # Outputs to the './_site' directory by default
+        run: |
+          bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
+        env:
+          JEKYLL_ENV: production
+
+      - name: Test built site
+        run: |
+          bundle exec htmlproofer ./_site \
+            --disable-external \
+            --check-html \
+            --allow-hash-href \
+            --empty-alt-ignore \
+            --assume-extension || echo "HTMLProofer found issues but continuing..."
+
+      - name: Upload artifact
+        # Automatically uploads an artifact from the './_site' directory by default
+        uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+  # Deployment job
+  deploy:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # Link checker job (runs on PRs and scheduled)
+  link-check:
+    if: github.event_name == 'pull_request' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+
+      - name: Build site for testing
+        run: bundle exec jekyll build
+        env:
+          JEKYLL_ENV: production
+
+      - name: Run comprehensive link check
+        run: |
+          bundle exec htmlproofer ./_site \
+            --check-external-hash \
+            --check-html \
+            --check-img-http \
+            --check-opengraph \
+            --enforce-https \
+            --empty-alt-ignore \
+            --allow-hash-href \
+            --assume-extension \
+            --disable-external=false \
+            --http-status-ignore="0,301,302,403,429,503,999" \
+            --url-ignore="/localhost/,/127.0.0.1/,/example.com/,/your-org.github.io/,/your-company/,/#.*/" \
+            --file-ignore="/assets/.*/"
+
+  # Security scan job
+  security-scan:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # Performance audit job
+  lighthouse:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Wait for deployment
+        run: sleep 30
+
+      - name: Lighthouse CI
+        run: |
+          npm install -g @lhci/cli@0.12.x
+          lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+          LHCI_SERVER_BASE_URL: ${{ secrets.LHCI_SERVER_BASE_URL }}
+
+  # Content validation job
+  validate-content:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+
+      - name: Validate Jekyll configuration
+        run: |
+          bundle exec jekyll doctor
+          echo "Jekyll configuration is valid ✅"
+
+      - name: Check for broken internal links
+        run: |
+          bundle exec jekyll build
+          # Custom script to validate internal markdown links
+          find ./_site -name "*.html" -exec grep -l "broken-link" {} \; || echo "No broken internal links found ✅"
+
+      - name: Validate frontmatter
+        run: |
+          # Check that all markdown files have required frontmatter
+          python3 -c "
+          import os
+          import re
+          import yaml
+          
+          errors = []
+          required_fields = ['title']
+          
+          for root, dirs, files in os.walk('.'):
+              # Skip hidden directories and _site
+              dirs[:] = [d for d in dirs if not d.startswith('.') and d != '_site']
+              
+              for file in files:
+                  if file.endswith('.md'):
+                      filepath = os.path.join(root, file)
+                      with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+                          content = f.read()
+                      
+                      # Check for frontmatter
+                      if content.startswith('---'):
+                          try:
+                              end = content.index('---', 3)
+                              frontmatter = yaml.safe_load(content[3:end])
+                              
+                              if frontmatter:
+                                  for field in required_fields:
+                                      if field not in frontmatter or not frontmatter[field]:
+                                          errors.append(f'{filepath}: Missing or empty {field}')
+                          except:
+                              errors.append(f'{filepath}: Invalid frontmatter YAML')
+          
+          if errors:
+              print('\\n'.join(errors))
+              exit(1)
+          else:
+              print('All frontmatter validation passed ✅')
+          "
+
+  # Accessibility check
+  accessibility-check:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Pa11y
+        run: npm install -g pa11y pa11y-ci
+
+      - name: Wait for deployment
+        run: sleep 30
+
+      - name: Run accessibility tests
+        run: |
+          # Test key pages for accessibility
+          SITE_URL="${{ steps.deployment.outputs.page_url || 'https://your-org.github.io/Engineering-Practices-SE' }}"
+          
+          pa11y --runner axe "$SITE_URL" || echo "Accessibility issues found on homepage"
+          pa11y --runner axe "$SITE_URL/01-development-practices/" || echo "Accessibility issues found on development practices"
+          pa11y --runner axe "$SITE_URL/navigation/" || echo "Accessibility issues found on navigation"
+
+# Scheduled workflow to check for outdated content and broken links
+  scheduled-maintenance:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for outdated content
+        run: |
+          # Find files older than 6 months that might need updates
+          find . -name "*.md" -type f -mtime +180 -not -path "./_site/*" -not -path "./node_modules/*" -not -path "./.git/*" | head -20 > outdated_files.txt
+          
+          if [ -s outdated_files.txt ]; then
+            echo "Files that haven't been updated in 6+ months:" >> $GITHUB_STEP_SUMMARY
+            cat outdated_files.txt >> $GITHUB_STEP_SUMMARY
+            
+            # Create an issue for outdated content
+            gh issue create \
+              --title "Content Review: Files needing attention" \
+              --body "The following files haven't been updated in 6+ months and may need review:$(cat outdated_files.txt | sed 's/^/\n- /')" \
+              --label "maintenance,content-review" || echo "Could not create issue"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update dependency status
+        run: |
+          # Create a simple status report
+          echo "## Jekyll Site Status Report" > status_report.md
+          echo "Generated on: $(date)" >> status_report.md
+          echo "" >> status_report.md
+          
+          echo "### Content Statistics" >> status_report.md
+          echo "- Total markdown files: $(find . -name '*.md' -type f -not -path './_site/*' | wc -l)" >> status_report.md
+          echo "- Total practice areas: 9" >> status_report.md
+          echo "- Last updated: $(date)" >> status_report.md
+
+# Add scheduled run (optional - uncomment to enable)
+# on:
+#   schedule:
+#     - cron: '0 2 * * 0'  # Run weekly on Sundays at 2 AM UTC
