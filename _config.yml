@@ -9,6 +9,15 @@ baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://your-org.github.io" # the base hostname & protocol for your site
 repository: your-org/Engineering-Practices-SE
 
+# GitHub Pages specific settings
+source: .
+destination: ./_site
+safe: true
+incremental: false
+highlighter: rouge
+gist:
+  noscript: false
+
 # Site metadata
 author:
   name: Engineering Team
@@ -22,15 +31,12 @@ theme: minima
 # Permalink structure
 permalink: /:categories/:title/
 
-# Plugins
+# Plugins (GitHub Pages compatible only)
 plugins:
   - jekyll-feed
   - jekyll-sitemap
   - jekyll-seo-tag
   - jekyll-relative-links
-  - jekyll-optional-front-matter
-  - jekyll-readme-index
-  - jekyll-titles-from-headings
 
 # Jekyll settings
 kramdown:
@@ -43,35 +49,11 @@ kramdown:
     block:
       line_numbers: true
 
-# Collections
-collections:
-  development_practices:
-    output: true
-    permalink: /:collection/:name/
-  architecture_design:
-    output: true
-    permalink: /:collection/:name/
-  quality_assurance:
-    output: true
-    permalink: /:collection/:name/
-  devops_infrastructure:
-    output: true
-    permalink: /:collection/:name/
-  security_practices:
-    output: true
-    permalink: /:collection/:name/
-  team_processes:
-    output: true
-    permalink: /:collection/:name/
-  standards_guidelines:
-    output: true
-    permalink: /:collection/:name/
-  tools_technologies:
-    output: true
-    permalink: /:collection/:name/
-  reference_materials:
-    output: true
-    permalink: /:collection/:name/
+# Simplified collections (remove complex collections for now)
+# collections:
+#   development_practices:
+#     output: true
+#     permalink: /:collection/:name/
 
 # Default values for posts and pages
 defaults:
@@ -146,10 +128,10 @@ exclude:
   - package.json
   - package-lock.json
   - webpack.config.js
+  - README.md
 
-# Include files
+# Include files (simplified)
 include:
-  - _pages
   - assets
 
 # Site navigation

@@ -1,22 +1,14 @@
 source "https://rubygems.org"
 
-# Jekyll version compatible with GitHub Pages
-gem "jekyll", "~> 4.3.0"
-
 # GitHub Pages gem (includes Jekyll and approved plugins)
 gem "github-pages", "~> 228", group: :jekyll_plugins
 
-# Jekyll plugins compatible with GitHub Pages
+# Jekyll plugins compatible with GitHub Pages (matching _config.yml)
 group :jekyll_plugins do
   gem "jekyll-feed", "~> 0.12"
   gem "jekyll-sitemap"
   gem "jekyll-seo-tag"
   gem "jekyll-relative-links"
-  gem "jekyll-optional-front-matter"
-  gem "jekyll-readme-index"
-  gem "jekyll-titles-from-headings"
-  gem "jekyll-redirect-from"
-  gem "jekyll-commonmark-ghpages"
 end
 
 # Development and testing dependencies
